@@ -1,26 +1,22 @@
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  Container,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { AppBar, Toolbar, Typography, Box, Container } from "@mui/material";
+import BottomNavigation from "./BottomNavigation";
+import SessionWarning from "./SessionWarning";
+import { useAuth } from "../hooks/useAuth";
+import { useTokenExpiration } from "../hooks/useTokenExpiration";
 import { useAppDispatch } from "../../store/store";
 import { logout } from "../../features/auth/store/authSlice";
-import { useAuth } from "../hooks/useAuth";
-import ThemeToggle from "./ThemeToggle";
-import { Logout } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const navigate = useNavigate();
+  const { token } = useAuth();
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { showWarning, timeUntilExpiry, dismissWarning } =
+    useTokenExpiration(token);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -45,29 +41,21 @@ export default function Layout({ children }: LayoutProps) {
           >
             React Auth App
           </Typography>
-
-          <ThemeToggle />
-
-          {isAuthenticated && user && (
-            <>
-              <Typography variant="body2" sx={{ mx: 2 }}>
-                {user.email}
-              </Typography>
-              <Button
-                color="inherit"
-                onClick={handleLogout}
-                startIcon={<Logout />}
-              >
-                Logout
-              </Button>
-            </>
-          )}
         </Toolbar>
       </AppBar>
 
       <Container maxWidth="xl" sx={{ py: 4, flex: 1 }}>
         {children}
       </Container>
+
+      <BottomNavigation />
+
+      <SessionWarning
+        open={showWarning}
+        onDismiss={dismissWarning}
+        onLogout={handleLogout}
+        timeUntilExpiry={timeUntilExpiry}
+      />
     </Box>
   );
 }
