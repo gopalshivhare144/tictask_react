@@ -8,6 +8,7 @@ import Layout from "../shared/components/Layout";
 import { useAuth } from "../shared/hooks/useAuth";
 import SettingsPage from "@/features/setting/pages/SettingsPage";
 import FocusListPage from "@/features/focus/pages/FocusListPage";
+import HabitListPage from "@/features/habit/pages/HabitListPage";
 
 export default function AppRouter() {
   const { isAuthenticated } = useAuth();
@@ -66,6 +67,17 @@ export default function AppRouter() {
           <ProtectedRoute>
             <Layout>
               <FocusListPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/habit"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <HabitListPage />
             </Layout>
           </ProtectedRoute>
         }

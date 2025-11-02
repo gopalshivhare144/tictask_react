@@ -1,13 +1,14 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  Box,
-  Chip,
-  Checkbox,
-} from "@mui/material";
-import { Edit, Delete, CalendarMonth } from "@mui/icons-material";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Switch from "@mui/material/Switch";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EventIcon from "@mui/icons-material/Event";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { type Task, type TaskPriority } from "../types/taskTypes";
 import { format } from "date-fns";
 
@@ -16,7 +17,9 @@ function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-const getPriorityColor = (priority: TaskPriority) => {
+const getPriorityColor = (
+  priority: TaskPriority
+): "error" | "warning" | "info" | "default" => {
   switch (priority) {
     case "HIGH":
       return "error";
@@ -45,107 +48,90 @@ export default function TaskCard({
   return (
     <Card
       sx={{
-        mb: 2,
-        borderRadius: 3,
-        boxShadow: 2,
-        bgcolor: "background.paper",
-        minWidth: 250,
-        maxWidth: 370,
-        opacity: task.completed ? 0.7 : 1,
-        textDecoration: task.completed ? "line-through" : "none",
+        borderRadius: 2,
+        boxShadow: 1,
+        position: "relative",
+        opacity: task.completed ? 0.75 : 1,
+        transition: "all 0.2s",
+        "&:hover": {
+          boxShadow: 3,
+        },
       }}
     >
-      <CardContent sx={{ pb: 1.5, pl: 1 }}>
-        <Box display="flex" alignItems="flex-start">
-          <Checkbox
-            color="primary"
-            checked={task.completed}
-            onChange={() => onToggleComplete(task)}
-            sx={{ p: 0.5, mr: 1, mt: 0.5 }}
-          />
-          <Box sx={{ flexGrow: 1 }}>
-            <Typography
-              variant="h6"
-              fontWeight={700}
-              noWrap
-              sx={{ textDecoration: task.completed ? "line-through" : "none" }}
-            >
-              {capitalize(task.title)}
-            </Typography>
+      <CardContent sx={{ pb: 2 }}>
+        <Box display="flex" alignItems="flex-start" gap={2}>
+          <Box flex={1}>
+            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                sx={{
+                  textDecoration: task.completed ? "line-through" : "none",
+                }}
+              >
+                {capitalize(task.title)}
+              </Typography>
+              {task.completed && (
+                <CheckCircleIcon color="primary" sx={{ fontSize: 24 }} />
+              )}
+            </Box>
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{
-                mb: 1.5,
-                mt: 0.5,
+                mb: 1,
                 textDecoration: task.completed ? "line-through" : "none",
               }}
             >
               {capitalize(task.description)}
             </Typography>
-            {/* Priority - Calendar - Date Row */}
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box display="flex" alignItems="center" gap={1}>
-                <Chip
-                  label={task.priority}
-                  color={getPriorityColor(task.priority)}
-                  size="small"
-                  sx={{
-                    fontWeight: 400,
-                    px: 1,
-                    py: 0,
-                    borderRadius: 2,
-                    minWidth: 56,
-                    textAlign: "center",
-                  }}
-                />
-                <CalendarMonth
-                  fontSize="small"
-                  sx={{ color: "action.active" }}
-                />
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ fontWeight: 500 }}
-                >
-                  {format(new Date(task.taskDate), "yyyy-MM-dd")}
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+              <Chip
+                label={task.priority}
+                color={getPriorityColor(task.priority)}
+                size="small"
+                sx={{ fontWeight: 500 }}
+              />
+              <Box display="flex" alignItems="center" gap={0.5}>
+                <EventIcon fontSize="small" color="action" />
+                <Typography variant="caption" color="text.secondary">
+                  {format(new Date(task.taskDate), "MMM dd, yyyy")}
                 </Typography>
               </Box>
             </Box>
-            {/* Action Row */}
-            <Box display="flex" justifyContent="flex-end" mt={0.5} gap={1}>
+          </Box>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={1}
+          >
+            <Box display="flex" alignItems="center">
+              <Typography variant="caption" color="text.secondary" mr={1}>
+                {task.completed ? "Completed" : "Complete"}
+              </Typography>
+              <Switch
+                checked={task.completed}
+                onChange={() => onToggleComplete(task)}
+                color="primary"
+              />
+            </Box>
+            <Box display="flex" gap={0.5}>
               <IconButton
                 size="small"
-                sx={{
-                  border: "1.5px solid #e0e0e0",
-                  bgcolor: "#fff",
-                  transition: "box-shadow .2s",
-                  "&:hover": { boxShadow: 2, color: "primary.main" },
-                }}
                 onClick={() => onEdit(task)}
+                color="primary"
+                title="Edit"
               >
-                <Edit fontSize="small" />
+                <EditIcon fontSize="small" />
               </IconButton>
               <IconButton
                 size="small"
-                sx={{
-                  border: "1.5px solid #ffe0e0",
-                  bgcolor: "#fff",
-                  color: "error.main",
-                  transition: "box-shadow .2s",
-                  "&:hover": {
-                    boxShadow: 2,
-                    bgcolor: "#ffeaea",
-                    color: "error.dark",
-                  },
-                }}
                 onClick={() => onDelete(task.id)}
+                color="error"
+                title="Delete"
               >
-                <Delete fontSize="small" />
+                <DeleteIcon fontSize="small" />
               </IconButton>
             </Box>
           </Box>

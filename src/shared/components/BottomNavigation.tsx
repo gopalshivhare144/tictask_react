@@ -9,6 +9,10 @@ import {
   FitnessCenter,
   Bolt,
   Settings,
+  CheckCircleOutline,
+  AccessTime,
+  Loop,
+  ListAlt,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -52,8 +56,7 @@ export default function BottomNavigation() {
         <BottomNavigationAction
           label="Habit"
           value="/habit"
-          icon={<FitnessCenter />}
-          disabled
+          icon={<ListAlt />}
         />
         <BottomNavigationAction
           label="Focus"

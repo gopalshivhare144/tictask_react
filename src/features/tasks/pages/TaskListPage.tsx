@@ -1,19 +1,15 @@
 import {
   Box,
   Typography,
-  Fab,
+  Button,
   CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   Snackbar,
   Alert,
-  Paper,
-  Stack,
 } from "@mui/material";
-import { Add } from "@mui/icons-material";
 import { useState } from "react";
 import TaskCard from "../components/TaskCard";
 import TaskModal from "../components/TaskModal";
@@ -25,6 +21,7 @@ import {
   useUpdateTaskMutation,
   useDeleteTaskMutation,
 } from "../services/taskApi";
+import AddIcon from "@mui/icons-material/Add";
 import { logger } from "../../../shared/utils/logger";
 import type { Task, TaskCreateRequest } from "../types/taskTypes";
 
@@ -40,7 +37,7 @@ export default function TaskListPage() {
     severity: "success" as "success" | "error",
   });
 
-  const size = 100; // fetch all, increase if you want full board
+  const size = 100;
   const searchResult = useSearchTasksQuery(
     { title: searchQuery, page: 0, size },
     { skip: !searchQuery }
@@ -55,7 +52,6 @@ export default function TaskListPage() {
   const allTasks: Task[] = data?.data?.content || [];
   const activeTasks = allTasks.filter((t) => !t.completed);
   const completedTasks = allTasks.filter((t) => t.completed);
-  const sortedTasks = [...activeTasks, ...completedTasks];
 
   const [createTask, { isLoading: isCreating }] = useCreateTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
@@ -168,12 +164,29 @@ export default function TaskListPage() {
   };
 
   return (
-    <Box sx={{ pb: 10 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
-        📝 My Tasks
-      </Typography>
+    <Box sx={{ px: 8,py:2, mx: "auto" }}>  
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" fontWeight={700} color="primary.dark">
+          Tasks
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{ borderRadius: 2, fontWeight: 600 }}
+          onClick={handleAddTask}
+        >
+          New Task
+        </Button>
+      </Box>
 
-      <Box alignItems="center" mb={2} mt={4}>
+      <Box mb={3}>
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
       </Box>
 
@@ -182,39 +195,56 @@ export default function TaskListPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <Box display="flex" gap={3} mx={4} overflow="auto">
-          <TaskColumn
-            title="All Tasks"
-            tasks={allTasks}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleComplete={handleToggleComplete}
-          />
-          <TaskColumn
-            title="Active Tasks"
-            tasks={activeTasks}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleComplete={handleToggleComplete}
-          />
-          <TaskColumn
-            title="Completed Tasks"
-            tasks={completedTasks}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleComplete={handleToggleComplete}
-          />
+        <Box>
+          {/* Active Tasks Section */}
+          <Box mb={4}>
+            <Typography variant="h6" fontWeight={600} mb={2}>
+              Active Tasks ({activeTasks.length})
+            </Typography>
+            <Box display="flex" flexDirection="column" gap={2}>
+              {activeTasks.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No active tasks.
+                </Typography>
+              ) : (
+                activeTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleComplete={handleToggleComplete}
+                  />
+                ))
+              )}
+            </Box>
+          </Box>
+
+          {/* Completed Tasks Section */}
+          <Box>
+            <Typography variant="h6" fontWeight={600} mb={2}>
+              Completed Tasks ({completedTasks.length})
+            </Typography>
+            <Box display="flex" flexDirection="column" gap={2}>
+              {completedTasks.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No completed tasks.
+                </Typography>
+              ) : (
+                completedTasks.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleComplete={handleToggleComplete}
+                  />
+                ))
+              )}
+            </Box>
+          </Box>
         </Box>
       )}
-
-      <Fab
-        color="primary"
-        aria-label="add task"
-        onClick={handleAddTask}
-        sx={{ position: "fixed", bottom: 80, right: 24 }}
-      >
-        <Add />
-      </Fab>
 
       <TaskModal
         open={isModalOpen}
@@ -267,54 +297,5 @@ export default function TaskListPage() {
         </Alert>
       </Snackbar>
     </Box>
-  );
-}
-
-function TaskColumn({
-  title,
-  tasks,
-  onEdit,
-  onDelete,
-  onToggleComplete,
-}: {
-  title: string;
-  tasks: Task[];
-  onEdit: (task: Task) => void;
-  onDelete: (id: number) => void;
-  onToggleComplete: (task: Task) => void;
-}) {
-  return (
-    <Paper
-      elevation={1}
-      sx={{
-        flex: 1,
-        minWidth: 320,
-        maxWidth: 370,
-        p: 2,
-        bgcolor: "#fafbfc",
-        borderRadius: 4,
-      }}
-    >
-      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-        {title}
-      </Typography>
-      <Stack spacing={2}>
-        {tasks.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No tasks.
-          </Typography>
-        ) : (
-          tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onToggleComplete={onToggleComplete}
-            />
-          ))
-        )}
-      </Stack>
-    </Paper>
   );
 }

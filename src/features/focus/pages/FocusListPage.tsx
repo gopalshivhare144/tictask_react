@@ -6,6 +6,7 @@ import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import FocusCard from "../components/FocusCard";
 import type { FocusProfile } from "../types/focusTypes";
 import FocusModal from "../components/FocusModel";
+import AddIcon from "@mui/icons-material/Add";
 
 const ICONS = [{ name: "Watch", icon: <AccessAlarmIcon fontSize="large" /> }];
 
@@ -24,27 +25,40 @@ function saveFocuses(list: FocusProfile[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-const DEFAULTS: FocusProfile[] = [
-  {
-    id: "default-pomo",
-    name: "Pomodoro",
-    icon: "Watch",
-    mode: "pomodoro",
-    pomoMinutes: 120,
-    isActive: false,
-    lastValue: 120 * 60 * 1000,
-  },
-];
+const DEFAULT_FOCUS: FocusProfile = {
+  id: "default-pomo-" + Date.now(),
+  name: "Pomodoro",
+  icon: "Watch",
+  mode: "pomodoro",
+  pomoMinutes: 120,
+  isActive: false,
+  lastValue: 120 * 60 * 1000,
+};
 
 export default function FocusListPage() {
   const [focuses, setFocuses] = useState<FocusProfile[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editFocus, setEditFocus] = useState<FocusProfile | undefined>();
 
-  useEffect(() => setFocuses(loadFocuses()), []);
-  useEffect(() => saveFocuses(focuses), [focuses]);
+  // Load focuses on mount
+  useEffect(() => {
+    const loaded = loadFocuses();
+    if (loaded.length === 0) {
+      // If no saved focuses, create one default
+      const initialFocus = { ...DEFAULT_FOCUS };
+      setFocuses([initialFocus]);
+      saveFocuses([initialFocus]);
+    } else {
+      setFocuses(loaded);
+    }
+  }, []);
 
-  const allFocuses = focuses.length === 0 ? DEFAULTS : focuses;
+  // Save to localStorage whenever focuses change
+  useEffect(() => {
+    if (focuses.length > 0) {
+      saveFocuses(focuses);
+    }
+  }, [focuses]);
 
   function handleSave(focus: FocusProfile, isEdit: boolean) {
     setFocuses((list) =>
@@ -54,7 +68,7 @@ export default function FocusListPage() {
             ...list,
             {
               ...focus,
-              id: Math.random().toString(36),
+              id: Math.random().toString(36) + Date.now(),
               lastValue:
                 focus.mode === "pomodoro"
                   ? (focus.pomoMinutes || 120) * 60 * 1000
@@ -68,19 +82,6 @@ export default function FocusListPage() {
   }
 
   function handleStart(id: string) {
-    const existing = focuses.find((f) => f.id === id);
-    if (!existing) {
-      const def = DEFAULTS.find((f) => f.id === id);
-      if (def) {
-        const customId = Math.random().toString(36);
-        setFocuses((list) =>
-          list
-            .map((f) => ({ ...f, isActive: false }))
-            .concat([{ ...def, id: customId, isActive: true }])
-        );
-        return;
-      }
-    }
     setFocuses((list) =>
       list.map((f) =>
         f.id === id ? { ...f, isActive: true } : { ...f, isActive: false }
@@ -96,7 +97,9 @@ export default function FocusListPage() {
               ...f,
               isActive: false,
               lastValue: clear
-                ? (f.pomoMinutes || 120) * 60 * 1000
+                ? f.mode === "pomodoro"
+                  ? (f.pomoMinutes || 120) * 60 * 1000
+                  : 0
                 : f.lastValue,
             }
           : f
@@ -105,7 +108,18 @@ export default function FocusListPage() {
   }
 
   function handleDelete(id: string) {
-    setFocuses((list) => list.filter((f) => f.id !== id));
+    setFocuses((list) => {
+      const newList = list.filter((f) => f.id !== id);
+      // If all deleted, add back a default
+      if (newList.length === 0) {
+        const defaultFocus = {
+          ...DEFAULT_FOCUS,
+          id: "default-pomo-" + Date.now(),
+        };
+        return [defaultFocus];
+      }
+      return newList;
+    });
   }
 
   function updateLastValue(id: string, value: number) {
@@ -115,7 +129,7 @@ export default function FocusListPage() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 700, mx: "auto" }}>
+    <Box sx={{ px: 8, py: 2, mx: "auto" }}>
       <Box
         sx={{
           display: "flex",
@@ -129,6 +143,7 @@ export default function FocusListPage() {
         </Typography>
         <Button
           variant="contained"
+          startIcon={<AddIcon />}
           sx={{ borderRadius: 2, fontWeight: 600 }}
           onClick={() => {
             setModalOpen(true);
@@ -143,15 +158,14 @@ export default function FocusListPage() {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 2,
           alignItems: "stretch",
           width: "100%",
-          maxWidth: 700,
           mx: "auto",
           mt: 4,
         }}
       >
-        {allFocuses.map((focus) => (
+        {focuses.map((focus) => (
           <FocusCard
             key={focus.id}
             focus={focus}
@@ -170,7 +184,10 @@ export default function FocusListPage() {
 
       <FocusModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditFocus(undefined);
+        }}
         focus={editFocus}
         icons={ICONS}
         onSave={handleSave}

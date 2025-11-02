@@ -71,30 +71,30 @@ export default function FocusTimer({
   }
 
   return (
-    <Box sx={{ minWidth: 180 }}>
+    <Box>
       <Typography
-        variant="h3"
+        variant="h5"
         fontWeight={700}
-        color={focus.isActive ? "primary.main" : "grey.700"}
+        color={focus.isActive ? "primary.main" : "text.secondary"}
         style={{ fontVariantNumeric: "tabular-nums" }}
-        mb={2}
+        mb={1}
       >
         {format(ms)}
       </Typography>
-      <Stack direction="row" spacing={2} justifyContent="flex-start" mt={1}>
+      <Stack direction="row" spacing={1}>
         {!focus.isActive ? (
           <Button
             onClick={() => onStart(focus.id)}
             variant="contained"
-            size="large"
+            size="small"
             color="primary"
             sx={{
-              fontWeight: "bold",
-              borderRadius: 3,
-              px: 5,
-              py: 1.5,
-              fontSize: 18,
-              boxShadow: 2,
+              fontWeight: 600,
+              borderRadius: 2,
+              px: 3,
+              py: 0.75,
+              fontSize: 14,
+              textTransform: "none",
             }}
           >
             Start
@@ -104,15 +104,15 @@ export default function FocusTimer({
             <Button
               onClick={() => onPauseOrClear(focus.id)}
               variant="contained"
-              size="large"
+              size="small"
               color="warning"
               sx={{
-                fontWeight: "bold",
-                borderRadius: 3,
-                px: 5,
-                py: 1.5,
-                fontSize: 18,
-                boxShadow: 2,
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 3,
+                py: 0.75,
+                fontSize: 14,
+                textTransform: "none",
               }}
             >
               Pause
@@ -120,13 +120,14 @@ export default function FocusTimer({
             <Button
               onClick={() => onPauseOrClear(focus.id, true)}
               variant="outlined"
-              size="large"
+              size="small"
               color="secondary"
               sx={{
-                borderRadius: 3,
-                px: 5,
-                py: 1.5,
-                fontSize: 18,
+                borderRadius: 2,
+                px: 3,
+                py: 0.75,
+                fontSize: 14,
+                textTransform: "none",
               }}
             >
               Reset

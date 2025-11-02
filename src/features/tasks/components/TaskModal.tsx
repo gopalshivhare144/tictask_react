@@ -10,7 +10,7 @@ import {
   Checkbox,
   Box,
 } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect } from "react";
@@ -29,7 +29,7 @@ type TaskFormData = z.infer<typeof taskSchema>;
 interface TaskModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (_:TaskCreateRequest) => void;
+  onSubmit: (_: TaskCreateRequest) => void;
   task?: Task;
   isLoading: boolean;
 }
@@ -46,6 +46,7 @@ export default function TaskModal({
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -58,26 +59,28 @@ export default function TaskModal({
   });
 
   useEffect(() => {
-    if (task) {
-      reset({
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        completed: task.completed,
-        taskDate: task.taskDate,
-      });
-    } else {
-      reset({
-        title: "",
-        description: "",
-        priority: "LOW",
-        completed: false,
-        taskDate: new Date().toISOString().split("T")[0],
-      });
+    if (open) {
+      if (task) {
+        reset({
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          completed: task.completed,
+          taskDate: task.taskDate,
+        });
+      } else {
+        reset({
+          title: "",
+          description: "",
+          priority: "LOW",
+          completed: false,
+          taskDate: new Date().toISOString().split("T")[0],
+        });
+      }
     }
-  }, [task, reset]);
+  }, [task, open, reset]);
 
-  const handleFormSubmit = (data: TaskFormData) => {
+  const handleFormSubmit = (data:TaskFormData) => {
     onSubmit(data);
   };
 
@@ -121,26 +124,41 @@ export default function TaskModal({
             InputLabelProps={{ shrink: true }}
           />
 
-          <TextField
-            {...register("priority")}
-            label="Priority"
-            select
-            fullWidth
-            error={!!errors.priority}
-            helperText={errors.priority?.message}
-            disabled={isLoading}
-            defaultValue="LOW"
-          >
-            <MenuItem value="LOW">Low</MenuItem>
-            <MenuItem value="MEDIUM">Medium</MenuItem>
-            <MenuItem value="HIGH">High</MenuItem>
-          </TextField>
+          <Controller
+            name="priority"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Priority"
+                select
+                fullWidth
+                error={!!errors.priority}
+                helperText={errors.priority?.message}
+                disabled={isLoading}
+              >
+                <MenuItem value="LOW">Low</MenuItem>
+                <MenuItem value="MEDIUM">Medium</MenuItem>
+                <MenuItem value="HIGH">High</MenuItem>
+              </TextField>
+            )}
+          />
 
-          <FormControlLabel
-            control={
-              <Checkbox {...register("completed")} disabled={isLoading} />
-            }
-            label="Mark as completed"
+          <Controller
+            name="completed"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    {...field}
+                    checked={field.value}
+                    disabled={isLoading}
+                  />
+                }
+                label="Mark as completed"
+              />
+            )}
           />
         </Box>
       </DialogContent>

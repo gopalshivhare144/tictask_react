@@ -1,9 +1,9 @@
-import Paper from "@mui/material/Paper";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { FocusProfile } from "../types/focusTypes";
@@ -26,77 +26,86 @@ export default function FocusCard({
   onDelete: (id: string) => void;
   updateLastValue: (id: string, value: number) => void;
 }) {
+  const capitalizeFirst = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   return (
-    <Paper
-      elevation={focus.isActive ? 8 : 2}
+    <Card
       sx={{
-        borderRadius: 4,
-        p: 3,
-        display: "flex",
-        alignItems: "center",
-        gap: 4,
-        bgcolor: focus.isActive ? "primary.lighter" : "background.paper",
-        boxShadow: focus.isActive ? 8 : 2,
-        minHeight: 110,
-        width: "100%",
+        borderRadius: 2,
+        boxShadow: 1,
         position: "relative",
+        transition: "all 0.2s",
+        "&:hover": {
+          boxShadow: 3,
+        },
+        border: focus.isActive ? "2px solid" : "1px solid",
+        borderColor: focus.isActive ? "primary.main" : "divider",
       }}
     >
-      <Box fontSize={48} color="primary.main" minWidth={64} mr={2}>
-        {icons.find((icon) => icon.name === focus.icon)?.icon}
-      </Box>
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h5" fontWeight={700}>
-          {focus.name}
-        </Typography>
-        {focus.mode === "pomodoro" ? (
-          <Chip
-            label={`Pomodoro (${focus.pomoMinutes || 120} min)`}
-            color="secondary"
-            size="small"
-            sx={{ mt: 1, fontWeight: 500 }}
-          />
-        ) : (
-          <Chip
-            label="Stopwatch"
-            color="info"
-            size="small"
-            sx={{ mt: 1, fontWeight: 500 }}
-          />
-        )}
-        <FocusTimer
-          focus={focus}
-          onStart={onStart}
-          onPauseOrClear={onPauseOrClear}
-          updateLastValue={updateLastValue}
-        />
-      </Box>
-      {!focus.id?.startsWith("default-") && (
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ position: "absolute", top: 8, right: 8 }}
-        >
-          <Button
-            size="small"
-            color="primary"
-            startIcon={<EditIcon />}
-            onClick={() => onEdit(focus)}
-            sx={{ textTransform: "none" }}
+      <CardContent sx={{ pb: 2 }}>
+        <Box display="flex" alignItems="flex-start" gap={2}>
+          <Box
+            sx={{
+              fontSize: 40,
+              color: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 48,
+            }}
           >
-            Edit
-          </Button>
-          <Button
-            size="small"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={() => onDelete(focus.id)}
-            sx={{ textTransform: "none" }}
-          >
-            Delete
-          </Button>
-        </Stack>
-      )}
-    </Paper>
+            {icons.find((icon) => icon.name === focus.icon)?.icon}
+          </Box>
+          <Box flex={1}>
+            <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <Typography variant="h6" fontWeight={600}>
+                {capitalizeFirst(focus.name)}
+              </Typography>
+              {focus.mode === "pomodoro" ? (
+                <Chip
+                  label={`Pomo (${focus.pomoMinutes || 120} min)`}
+                  color="secondary"
+                  size="small"
+                  sx={{ fontWeight: 500 }}
+                />
+              ) : (
+                <Chip
+                  label="Stopwatch"
+                  color="info"
+                  size="small"
+                  sx={{ fontWeight: 500 }}
+                />
+              )}
+            </Box>
+            <FocusTimer
+              focus={focus}
+              onStart={onStart}
+              onPauseOrClear={onPauseOrClear}
+              updateLastValue={updateLastValue}
+            />
+          </Box>
+          <Box display="flex" flexDirection="column" gap={0.5}>
+            <IconButton
+              size="small"
+              onClick={() => onEdit(focus)}
+              color="primary"
+              title="Edit"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => onDelete(focus.id)}
+              color="error"
+              title="Delete"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }

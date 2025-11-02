@@ -27,7 +27,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <Box sx={{ pb: 10 }}>
+    <Box sx={{ px: 8, py: 2, mx: "auto" }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         ⚙️ Settings
       </Typography>
