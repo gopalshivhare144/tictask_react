@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import type {
   HabitCreateRequest,
   HabitDeleteResponse,
@@ -7,26 +7,19 @@ import type {
   HabitsByDateResponse,
   HabitUpdateRequest,
 } from "../types/habitTypes";
+import { axiosBaseQuery } from "@/shared/services/baseApi";
 
 export const habitApi = createApi({
   reducerPath: "habitApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+  baseQuery: axiosBaseQuery(),
   tagTypes: ["Habit"],
   endpoints: (builder) => ({
-    // Get all habits with pagination
     getHabits: builder.query<HabitListResponse, { page: number; size: number }>(
       {
-        query: ({ page, size }) => `/habits?page=${page}&size=${size}`,
+        query: ({ page, size }) => ({
+          url: `/habits?page=${page}&size=${size}`,
+          method: "GET",
+        }),
         providesTags: (result) =>
           result
             ? [
@@ -40,23 +33,19 @@ export const habitApi = createApi({
       }
     ),
 
-    // Get active habits by date
     getActiveHabitsByDate: builder.query<HabitsByDateResponse, string>({
-      query: (date) => `/habits/active?date=${date}`,
+      query: (date) => ({
+        url: `/habits/active?date=${encodeURIComponent(date)}`,
+        method: "GET",
+      }),
       providesTags: ["Habit"],
     }),
 
-    // Create new habit
     createHabit: builder.mutation<HabitResponse, HabitCreateRequest>({
-      query: (habit) => ({
-        url: "/habits",
-        method: "POST",
-        body: habit,
-      }),
+      query: (habit) => ({ url: "/habits", method: "POST", data: habit }),
       invalidatesTags: [{ type: "Habit", id: "LIST" }],
     }),
 
-    // Update habit
     updateHabit: builder.mutation<
       HabitResponse,
       { id: number; habit: HabitUpdateRequest }
@@ -64,19 +53,17 @@ export const habitApi = createApi({
       query: ({ id, habit }) => ({
         url: `/habits/${id}`,
         method: "PUT",
-        body: habit,
+        data: habit,
       }),
+
       async onQueryStarted({ id, habit }, { dispatch, queryFulfilled }) {
-        // Optimistic update
         const patchResult = dispatch(
           habitApi.util.updateQueryData(
             "getHabits",
             { page: 0, size: 10 },
             (draft) => {
-              const habitToUpdate = draft.data.content.find((h) => h.id === id);
-              if (habitToUpdate) {
-                Object.assign(habitToUpdate, habit);
-              }
+              const found = draft.data.content.find((h) => h.id === id);
+              if (found) Object.assign(found, habit);
             }
           )
         );
@@ -88,12 +75,8 @@ export const habitApi = createApi({
       },
     }),
 
-    // Delete habit
     deleteHabit: builder.mutation<HabitDeleteResponse, number>({
-      query: (id) => ({
-        url: `/habits/${id}`,
-        method: "DELETE",
-      }),
+      query: (id) => ({ url: `/habits/${id}`, method: "DELETE" }),
       invalidatesTags: [{ type: "Habit", id: "LIST" }],
     }),
   }),

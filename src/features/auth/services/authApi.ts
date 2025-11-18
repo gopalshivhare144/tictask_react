@@ -1,32 +1,28 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { LoginRequest, LoginResponse, SignupRequest, SignupResponse } from "../types/authTypes";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import type {
+  LoginRequest,
+  LoginResponse,
+  SignupRequest,
+  SignupResponse,
+} from "../types/authTypes";
+import { axiosBaseQuery } from "@/shared/services/baseApi";
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+  baseQuery: axiosBaseQuery(),
   endpoints: (builder) => ({
     signup: builder.mutation<SignupResponse, SignupRequest>({
-      query: (credentials) => ({
+      query: (payload) => ({
         url: "/auth/signup",
         method: "POST",
-        body: credentials,
+        data: payload,
       }),
     }),
     login: builder.mutation<LoginResponse, LoginRequest>({
-      query: (credentials) => ({
+      query: (payload) => ({
         url: "/auth/login",
         method: "POST",
-        body: credentials,
+        data: payload,
       }),
     }),
   }),

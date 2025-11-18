@@ -1,78 +1,85 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { TaskCreateRequest, TaskDeleteResponse, TaskListResponse, TaskResponse, TasksByDateResponse, TaskUpdateRequest } from "../types/taskTypes";
-
+import { createApi } from "@reduxjs/toolkit/query/react";
+import type {
+  TaskCreateRequest,
+  TaskDeleteResponse,
+  TaskListResponse,
+  TaskResponse,
+  TasksByDateResponse,
+  TaskUpdateRequest,
+} from "../types/taskTypes";
+import { axiosBaseQuery } from "@/shared/services/baseApi";
 
 export const taskApi = createApi({
   reducerPath: "taskApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      headers.set("Content-Type", "application/json");
-      return headers;
-    },
-  }),
+  baseQuery: axiosBaseQuery(),
   tagTypes: ["Task"],
   endpoints: (builder) => ({
-    // Get all tasks with pagination
     getTasks: builder.query<TaskListResponse, { page: number; size: number }>({
-      query: ({ page, size }) => `/tasks?page=${page}&size=${size}`,
-      providesTags: ["Task"],
+      query: ({ page, size }) => ({
+        url: `/tasks?page=${page}&size=${size}`,
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.content.map(({ id }) => ({
+                type: "Task" as const,
+                id,
+              })),
+              { type: "Task", id: "LIST" },
+            ]
+          : [{ type: "Task", id: "LIST" }],
     }),
 
-    // Get single task by ID
     getTaskById: builder.query<TaskResponse, number>({
-      query: (id) => `/tasks/${id}`,
-      providesTags: ["Task"],
+      query: (id) => ({ url: `/tasks/${id}`, method: "GET" }),
+      providesTags: (result, error, id) => [{ type: "Task", id }],
     }),
 
-    // Search tasks by title
     searchTasks: builder.query<
       TaskListResponse,
-      { title: string; page: number; size: number }>({
-      query: ({ title, page, size }) =>
-        `/tasks/search?title=${title}&page=${page}&size=${size}`,
-      providesTags: ["Task"],
-    }),
-
-    // Get tasks by date
-    getTasksByDate: builder.query<TasksByDateResponse, string>({
-      query: (taskDate) => `/tasks/by-date?taskDate=${taskDate}`,
-      providesTags: ["Task"],
-    }),
-
-    // Create new task
-    createTask: builder.mutation<TaskResponse, TaskCreateRequest>({
-      query: (task) => ({
-        url: "/tasks",
-        method: "POST",
-        body: task,
+      { title: string; page: number; size: number }
+    >({
+      query: ({ title, page, size }) => ({
+        url: `/tasks/search?title=${encodeURIComponent(
+          title
+        )}&page=${page}&size=${size}`,
+        method: "GET",
       }),
-      invalidatesTags: ["Task"],
+      providesTags: ["Task"],
     }),
 
-    // Update task
+    getTasksByDate: builder.query<TasksByDateResponse, string>({
+      query: (taskDate) => ({
+        url: `/tasks/by-date?taskDate=${encodeURIComponent(taskDate)}`,
+        method: "GET",
+      }),
+      providesTags: ["Task"],
+    }),
+
+    createTask: builder.mutation<TaskResponse, TaskCreateRequest>({
+      query: (task) => ({ url: "/tasks", method: "POST", data: task }),
+      invalidatesTags: [{ type: "Task", id: "LIST" }],
+    }),
+
     updateTask: builder.mutation<
       TaskResponse,
-      { id: number; task: TaskUpdateRequest }>({
+      { id: number; task: TaskUpdateRequest }
+    >({
       query: ({ id, task }) => ({
         url: `/tasks/${id}`,
         method: "PUT",
-        body: task,
+        data: task,
       }),
-      invalidatesTags: ["Task"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Task", id },
+        { type: "Task", id: "LIST" },
+      ],
     }),
 
-    // Delete task
     deleteTask: builder.mutation<TaskDeleteResponse, number>({
-      query: (id) => ({
-        url: `/tasks/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Task"],
+      query: (id) => ({ url: `/tasks/${id}`, method: "DELETE" }),
+      invalidatesTags: [{ type: "Task", id: "LIST" }],
     }),
   }),
 });
