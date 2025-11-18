@@ -6,12 +6,8 @@ import {
 import {
   CheckBox,
   CalendarMonth,
-  FitnessCenter,
   Bolt,
   Settings,
-  CheckCircleOutline,
-  AccessTime,
-  Loop,
   ListAlt,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";

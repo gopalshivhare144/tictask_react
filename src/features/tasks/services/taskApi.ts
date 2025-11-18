@@ -33,7 +33,7 @@ export const taskApi = createApi({
 
     getTaskById: builder.query<TaskResponse, number>({
       query: (id) => ({ url: `/tasks/${id}`, method: "GET" }),
-      providesTags: (result, error, id) => [{ type: "Task", id }],
+      providesTags: (_result, _error, id) => [{ type: "Task", id }],
     }),
 
     searchTasks: builder.query<
@@ -71,7 +71,7 @@ export const taskApi = createApi({
         method: "PUT",
         data: task,
       }),
-      invalidatesTags: (result, error, { id }) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: "Task", id },
         { type: "Task", id: "LIST" },
       ],
