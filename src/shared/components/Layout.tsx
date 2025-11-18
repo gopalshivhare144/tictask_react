@@ -35,11 +35,11 @@ export default function Layout({ children }: LayoutProps) {
       <AppBar position="static">
         <Toolbar>
           <Typography
-            variant="h6"
+            variant="h4"
             component="div"
             sx={{ flexGrow: 1, fontWeight: 700 }}
           >
-            React Auth App
+            TicTask
           </Typography>
         </Toolbar>
       </AppBar>
