@@ -7,9 +7,8 @@ import { logger } from "../utils/logger";
 
 const axiosInstance = axios.create({
   baseURL:
-    import.meta.env.VITE_API_BASE_URL ||
-    "https://tictask-springboot.onrender.com/api",
-  timeout: 10000,
+    import.meta.env.VITE_API_BASE_URL,
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },
